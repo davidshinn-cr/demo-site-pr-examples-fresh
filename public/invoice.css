@@ -1,0 +1,53 @@
+@font-face {
+  font-family: Geist;
+  src: url("/brand/geist-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: Hack;
+  src: url("/brand/hack-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+:root {
+  color-scheme: dark;
+  background: #121014;
+  color: #efedf0;
+  font-family: Geist, sans-serif;
+}
+body {
+  margin: 0;
+}
+header {
+  border-bottom: 1px solid #3c3841;
+  padding: 28px;
+}
+header img {
+  height: auto;
+}
+main {
+  max-width: 640px;
+  padding: 40px 24px;
+  margin: auto;
+}
+h1,
+h2 {
+  font-weight: 600;
+}
+p,
+dt {
+  color: #b5b2b9;
+}
+dt {
+  margin-top: 24px;
+}
+dd {
+  font-family: Hack, monospace;
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.note {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}

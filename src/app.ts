@@ -1,3 +1,8 @@
+import { migratePromotions, activePromotion } from "./db/promotions.ts";
+import { promotionalQuote } from "./services/promotions.ts";
+import { bulkCheckout, parseBatch } from "./services/bulk-checkout.ts";
+import { searchInvoices } from "./services/invoice-search.ts";
+import { exportInvoice } from "./services/invoice-export.ts";
 /** Fetch-style HTTP application, shared by the Node adapter and integration tests. */
 import { isRecord } from "./contracts/model.ts";
 import { DEMO_USERS, Store } from "./db/store.ts";
@@ -72,6 +77,7 @@ export function createApplication(
   store: Store = new Store(),
   sessions: Sessions = new Sessions(),
 ): Application {
+  migratePromotions(store);
   async function route(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (!LOCAL_HOSTS.has(url.hostname))
@@ -109,8 +115,34 @@ export function createApplication(
     }
     if (path === "/api/products" && request.method === "GET")
       return json(store.products());
-    if (path === "/api/pricing/quote" && request.method === "POST")
-      return json(quote(store, parseQuoteRequest(await body(request))));
+    if (path === "/api/pricing/quote" && request.method === "POST") {
+      const input = parseQuoteRequest(await body(request));
+      const pricing = quote(store, input);
+      return json(
+        promotionalQuote(
+          pricing.subtotalCents,
+          input.itemCount,
+          activePromotion(store),
+        ),
+      );
+    }
+    if (path === "/api/orders/bulk" && request.method === "POST")
+      return json(
+        bulkCheckout(store, user, parseBatch(await body(request))),
+        201,
+      );
+    if (path === "/api/invoices/search" && request.method === "GET")
+      return json(searchInvoices(store, user, url.searchParams.get("q") ?? ""));
+    if (
+      path.startsWith("/api/invoices/") &&
+      path.endsWith("/export") &&
+      request.method === "GET"
+    )
+      return exportInvoice(
+        store,
+        user,
+        path.slice("/api/invoices/".length, -"/export".length),
+      );
     if (path === "/api/orders" && request.method === "POST")
       return json(
         checkout(store, user, parsePurchase(await body(request))),

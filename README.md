@@ -55,3 +55,7 @@ Review committed changes with `coderabbit review --committed --base main` before
 - Learning platform: https://fe-demo-site.vercel.app/
 
 The consumer is intentionally local. Its presence demonstrates contract compatibility, not cross-repository detection. A true cross-repository example needs a separately authorized consumer repository integration.
+
+## Flagship branch
+
+Bulk checkout, promotion persistence, invoice search, and administrator HTML exports are implemented here with six deliberate defects. See [the demonstration guide](docs/flagship-demo.md) for exact scenarios, Jira linkage, remediation targets, and expected-failure test semantics. The regular purchase UI remains usable, but the original independent pricing consumer detects the deliberately broken response contract.

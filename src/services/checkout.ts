@@ -1,3 +1,5 @@
+import { activePromotion } from "../db/promotions.ts";
+import { promotionalQuote } from "./promotions.ts";
 /** Checkout creates an invoice using server-owned pricing and tenant identity. */
 import type { Invoice, PurchaseRequest, User } from "../contracts/model.ts";
 import { isRecord } from "../contracts/model.ts";
@@ -23,11 +25,16 @@ export function checkout(
   const pricing = quote(store, input);
   const product = store.product(input.productId);
   if (!product) throw new HttpError(404, "Product not found.");
+  const promotional = promotionalQuote(
+    pricing.subtotalCents,
+    input.itemCount,
+    activePromotion(store),
+  );
   return store.createInvoice(
     user.tenantId,
     product,
     input.itemCount,
-    pricing.totalCents,
+    Math.round(promotional.total * 100),
     input.note,
   );
 }
