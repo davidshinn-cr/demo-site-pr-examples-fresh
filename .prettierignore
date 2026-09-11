@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+public/brand
+AGENTS.md
+package-lock.json
+.local

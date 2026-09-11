@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
 # =============================================================================
-# CodeRabbit config for security-harness (demo). Config-as-policy:
+# CodeRabbit config for demo-site-pr-examples. Config-as-policy:
 # tone, path-scoped rules, an AST rule, integrated scanners, a security merge
 # gate, learnings, finishing touches, and code guidelines from our own Markdown.
 # =============================================================================
@@ -108,14 +108,6 @@ knowledge_base:
       # findings in THIS repo can cite a guideline that isn't stored here.
       - "coderabbit-demo/coderabbit-standards:guidelines/**/*.md"
 
-  # Multi-repo awareness. We do NOT rely on auto-discovery; the downstream consumer is
-  # linked explicitly so a change to this service's public API surfaces its breaking
-  # impact (exact files + lines) before merge, deterministically.
+  # All application and consumer code currently lives in this repository.
+  # Enable an explicit downstream link only after a real consumer is connected.
   automatic_repository_linking: false
-  linked_repositories:
-    - repository: "coderabbit-demo/security-harness-consumer"
-      instructions: >-
-        Downstream consumer of this service's HTTP API and shared TypeScript types. When a
-        PR here changes an exported endpoint, route path, request/response shape, or an
-        exported type, check whether it breaks call sites in that repo and surface the exact
-        files and lines affected.
