@@ -8,6 +8,7 @@ export function parseQuoteRequest(value: unknown): QuoteRequest {
   if (
     !isRecord(value) ||
     typeof value.productId !== "string" ||
+    value.productId.trim().length === 0 ||
     !isCount(value.itemCount)
   )
     throw new HttpError(400, "Choose a product and a quantity from 1 to 100.");
