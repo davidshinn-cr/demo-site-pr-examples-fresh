@@ -24,7 +24,7 @@ export function exportInvoice(
       "x-content-type-options": "nosniff",
       "referrer-policy": "no-referrer",
       "content-security-policy":
-        "default-src 'none'; script-src 'unsafe-inline'; style-src 'self'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'",
+        "default-src 'none'; script-src 'unsafe-inline'; style-src 'self'; img-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'",
     },
   });
 }

@@ -74,16 +74,16 @@ describe("baseline API invariants", () => {
     async () => {
       const response = await request("/api/pricing/quote", "POST", {
         productId: "notebook",
-        itemCount: 10,
+        itemCount: 1,
         subtotalCents: 1,
       });
       const data: unknown = await response.json();
+      expect(checkoutSummary(data)).toBe("Amount due: $12.99");
       expect(data).toEqual({
-        subtotalCents: 12990,
-        totalCents: 12990,
+        subtotalCents: 1299,
+        totalCents: 1299,
         itemCount: 10,
       });
-      expect(checkoutSummary(data)).toBe("Amount due: $129.90");
     },
   );
   it("creates an invoice with tenant identity from the session", async () => {

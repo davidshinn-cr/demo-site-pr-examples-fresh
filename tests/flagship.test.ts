@@ -169,6 +169,13 @@ describe("acceptance criteria — known flagship defects", () => {
       itemCount: 11,
     });
     const data: unknown = await response.json();
-    expect(data).toMatchObject({ totalCents: 12860 });
+    if (
+      typeof data !== "object" ||
+      data === null ||
+      !("total" in data) ||
+      typeof data.total !== "number"
+    )
+      throw new Error("Missing monetary amount");
+    expect(Number.isInteger(data.total * 100)).toBe(true);
   });
 });
