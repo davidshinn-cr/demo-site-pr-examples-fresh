@@ -207,6 +207,20 @@ describe("purchase workspace", () => {
   });
 });
 describe("HTTP client", () => {
+  it("preserves headers supplied as a Headers object, tuples, or a record", async () => {
+    const variants: HeadersInit[] = [
+      new Headers({ "x-test": "yes" }),
+      [["x-test", "yes"]],
+      { "x-test": "yes" },
+    ];
+    fetchMock.mockImplementation(async (_input, init) => {
+      const headers = new Headers(init?.headers);
+      expect(headers.get("x-test")).toBe("yes");
+      expect(headers.get("content-type")).toBe("application/json");
+      return Response.json({ ok: true });
+    });
+    for (const headers of variants) await api("/api/test", { headers });
+  });
   it("uses a status fallback for an empty server error", async () => {
     fetchMock.mockResolvedValue(
       new Response("", { status: 502, statusText: "Bad Gateway" }),

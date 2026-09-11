@@ -40,9 +40,27 @@ function sessionToken(request: Request): string {
 async function body(request: Request): Promise<unknown> {
   if (request.headers.get("content-type")?.split(";")[0] !== "application/json")
     throw new HttpError(415, "Send JSON request data.");
-  const text = await request.text();
-  if (new TextEncoder().encode(text).byteLength > 16384)
-    throw new HttpError(413, "Request is too large.");
+  let text = "";
+  let bytes = 0;
+  const reader = request.body?.getReader();
+  if (reader) {
+    const decoder = new TextDecoder();
+    try {
+      for (;;) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        bytes += chunk.value.byteLength;
+        if (bytes > 16384) {
+          await reader.cancel().catch(() => undefined);
+          throw new HttpError(413, "Request is too large.");
+        }
+        text += decoder.decode(chunk.value, { stream: true });
+      }
+      text += decoder.decode();
+    } finally {
+      reader.releaseLock();
+    }
+  }
   try {
     return JSON.parse(text);
   } catch {

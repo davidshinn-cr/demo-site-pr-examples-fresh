@@ -37,6 +37,31 @@ beforeEach(async () => {
 afterEach(() => app.close());
 
 describe("baseline API invariants", () => {
+  it("cancels an oversized chunked body before buffering it completely", async () => {
+    let cancelled = false;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(new Uint8Array(8192));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const init: RequestInit & { duplex: "half" } = {
+      method: "POST",
+      duplex: "half",
+      body: stream,
+      headers: {
+        origin: "http://localhost",
+        "content-type": "application/json",
+      },
+    };
+    const response = await app.handle(
+      new Request("http://localhost/api/session", init),
+    );
+    expect(response.status).toBe(413);
+    expect(cancelled).toBe(true);
+  });
   it("exposes synthetic identities and the active session", async () => {
     expect(await (await request("/api/demo-users")).json()).toHaveLength(3);
     expect(await (await request("/api/session")).json()).toMatchObject({

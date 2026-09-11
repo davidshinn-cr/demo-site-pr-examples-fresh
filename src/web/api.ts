@@ -5,9 +5,12 @@ export async function api(
   init: RequestInit = {},
 ): Promise<unknown> {
   const timeout = AbortSignal.timeout(10000);
+  const headers = new Headers(init.headers);
+  if (!headers.has("content-type"))
+    headers.set("content-type", "application/json");
   const response = await fetch(path, {
     ...init,
-    headers: { "content-type": "application/json", ...init.headers },
+    headers,
     signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
   });
   if (!response.ok) {
