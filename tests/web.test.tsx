@@ -207,6 +207,14 @@ describe("purchase workspace", () => {
   });
 });
 describe("HTTP client", () => {
+  it("uses a status fallback for an empty server error", async () => {
+    fetchMock.mockResolvedValue(
+      new Response("", { status: 502, statusText: "Bad Gateway" }),
+    );
+    await expect(api("/api/nope")).rejects.toThrow(
+      "Request failed (502 Bad Gateway)",
+    );
+  });
   it("uses a safe fallback for malformed error responses", async () => {
     fetchMock.mockResolvedValue(Response.json({}, { status: 500 }));
     await expect(api("/api/nope")).rejects.toThrow("Request failed");

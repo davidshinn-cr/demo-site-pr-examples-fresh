@@ -10,12 +10,19 @@ export async function api(
     headers: { "content-type": "application/json", ...init.headers },
     signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
   });
-  const value: unknown = await response.json();
-  if (!response.ok)
+  if (!response.ok) {
+    const fallback = `Request failed (${response.status}${response.statusText ? ` ${response.statusText}` : ""}).`;
+    let value: unknown;
+    try {
+      value = await response.json();
+    } catch {
+      throw new Error(fallback);
+    }
     throw new Error(
       isRecord(value) && typeof value.error === "string"
         ? value.error
-        : "Request failed.",
+        : fallback,
     );
-  return value;
+  }
+  return response.json();
 }

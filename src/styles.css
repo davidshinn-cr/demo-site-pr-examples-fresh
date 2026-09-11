@@ -27,6 +27,7 @@
   --line: #3c3841;
   --muted: #b5b2b9;
   --text: #efedf0;
+
   color-scheme: dark;
   font-family: Geist, sans-serif;
   color: var(--text);
