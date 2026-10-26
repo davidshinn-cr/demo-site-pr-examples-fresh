@@ -51,7 +51,7 @@ Review committed changes with `coderabbit review --committed --base main` before
 ## References
 
 - Official branding: https://www.coderabbit.ai/brand
-- Shared standards: https://github.com/davidshinn-cr/coderabbit-standards
+- Shared standards: https://github.com/coderabbit-demo/coderabbit-standards (`guidelines/*.md` on its default branch; requires CodeRabbit App read access to the source repository).
 - Learning platform: https://fe-demo-site.vercel.app/
 
 The consumer is intentionally local. Its presence demonstrates contract compatibility, not cross-repository detection. A true cross-repository example needs a separately authorized consumer repository integration.
