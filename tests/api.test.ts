@@ -37,6 +37,27 @@ beforeEach(async () => {
 afterEach(() => app.close());
 
 describe("baseline API invariants", () => {
+  it.each(["Application/JSON", "application/json ; charset=utf-8"])(
+    "accepts equivalent JSON media type %s",
+    async (contentType) => {
+      const response = await request(
+        "/api/pricing/quote",
+        "POST",
+        { productId: "notebook", itemCount: 1 },
+        { "content-type": contentType },
+      );
+      expect(response.status).toBe(200);
+    },
+  );
+  it.each(["", "   "])("rejects blank product ID %j", async (productId) => {
+    const response = await request("/api/orders", "POST", {
+      productId,
+      itemCount: 1,
+      note: "",
+    });
+    expect(response.status).toBe(400);
+    expect(await (await request("/api/invoices")).json()).toHaveLength(1);
+  });
   it("cancels an oversized chunked body before buffering it completely", async () => {
     let cancelled = false;
     const stream = new ReadableStream<Uint8Array>({

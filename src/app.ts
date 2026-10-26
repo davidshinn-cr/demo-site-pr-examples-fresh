@@ -43,7 +43,12 @@ function sessionToken(request: Request): string {
   );
 }
 async function body(request: Request): Promise<unknown> {
-  if (request.headers.get("content-type")?.split(";")[0] !== "application/json")
+  const mediaType = request.headers
+    .get("content-type")
+    ?.split(";")[0]
+    ?.trim()
+    .toLowerCase();
+  if (mediaType !== "application/json")
     throw new HttpError(415, "Send JSON request data.");
   let text = "";
   let bytes = 0;
