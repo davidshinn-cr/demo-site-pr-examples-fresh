@@ -104,7 +104,7 @@ knowledge_base:
       # Cross-repo: shared org standards live in a separate repo. CodeRabbit reads
       # these from coderabbit-standards' default branch (owner/repo:path syntax), so
       # findings in THIS repo can cite a guideline that isn't stored here.
-      - "coderabbit-demo/coderabbit-standards:guidelines/**/*.md"
+      - "davidshinn-cr/coderabbit-standards:guidelines/**/*.md"
 
   # All application and consumer code currently lives in this repository.
   # Enable an explicit downstream link only after a real consumer is connected.
