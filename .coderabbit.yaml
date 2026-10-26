@@ -65,8 +65,6 @@ reviews:
       enabled: true
     ast-grep:
       essential_rules: true
-      rule_dirs:
-        - ".coderabbit/ast-grep-rules"
 
   pre_merge_checks:
     issue_assessment:
