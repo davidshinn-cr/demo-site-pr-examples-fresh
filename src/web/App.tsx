@@ -1,3 +1,6 @@
+import { promotionSummary } from "./promotion-response.ts";
+import { InvoiceSearch } from "./InvoiceSearch.tsx";
+import { BulkCheckout } from "./BulkCheckout.tsx";
 /** Purchase workspace with explicit session, loading, and mutation states. */
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactElement } from "react";
@@ -8,7 +11,7 @@ import {
   parseProduct,
   parseUser,
 } from "../contracts/model.ts";
-import { checkoutSummary, formatCents } from "../consumer/checkout-summary.ts";
+import { formatCents } from "../consumer/checkout-summary.ts";
 import { api } from "./api.ts";
 
 type LoadState =
@@ -239,7 +242,7 @@ export function PurchaseWorkspace({
           kind: "success",
           message: `Order placed. ${formatCents(invoice.totalCents)} added to your invoices.`,
         });
-      } else setAction({ kind: "success", message: checkoutSummary(value) });
+      } else setAction({ kind: "success", message: promotionSummary(value) });
     } catch (error: unknown) {
       if (!abort.signal.aborted)
         setAction({ kind: "error", message: messageOf(error) });
@@ -250,7 +253,7 @@ export function PurchaseWorkspace({
       <section className="purchase">
         <div className="catalog">
           <h2>The team catalog</h2>
-          <p>Considered essentials for the everyday.</p>
+          <p>Order 10 or more of an item for a 10% bulk discount.</p>
           {products.map((product) => (
             <label
               className={`product-row ${productId === product.id ? "selected" : ""}`}
@@ -336,11 +339,17 @@ export function PurchaseWorkspace({
           </div>
         </form>
       </section>
+      <BulkCheckout
+        onCreated={(created) =>
+          setInvoices((previous) => [...created, ...previous])
+        }
+      />
       <section className="invoice-section">
         <div className="section-title">
           <h2>Recent invoices</h2>
           <span>{invoices.length} invoices</span>
         </div>
+        <InvoiceSearch />
         {invoices.length === 0 ? (
           <p>Your first order will appear here.</p>
         ) : (
@@ -379,6 +388,16 @@ export function PurchaseWorkspace({
                       >
                         View ↗
                       </a>
+                      {user.role === "admin" && (
+                        <a
+                          className="export-link"
+                          href={`/api/invoices/${encodeURIComponent(invoice.id)}/export`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Export HTML ↗
+                        </a>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -12,3 +12,5 @@ This is a product interface for an SA walking through a purchase on a shared scr
 - Visible focus, labeled inputs, readable error/status announcements, reduced-motion preference, and contained horizontal scrolling for tables.
 
 Shared tokens live in src/styles.css. Reference assets were copied read-only from demo-site; that repository is not modified.
+
+The flagship adds an inline bulk-order disclosure and invoice search above the existing table. Administrators receive an HTML export link. Exports use a locally served stylesheet and the same official logotype, fonts, and Mauve palette. Security defects in the export are intentional demo behavior documented separately, not a design-system convention.

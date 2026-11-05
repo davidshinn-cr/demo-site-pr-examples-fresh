@@ -1,4 +1,7 @@
 // @vitest-environment jsdom
+import { BulkCheckout, parseBatchText } from "../src/web/BulkCheckout.tsx";
+import { InvoiceSearch } from "../src/web/InvoiceSearch.tsx";
+import { promotionSummary } from "../src/web/promotion-response.ts";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
@@ -78,7 +81,8 @@ describe("purchase workspace", () => {
       if (path === "/api/pricing/quote")
         return Response.json({
           subtotalCents: 1299,
-          totalCents: 1299,
+          total: 12.99,
+          discountPercent: 0,
           itemCount: 1,
         });
       return Response.json({
@@ -133,7 +137,12 @@ describe("purchase workspace", () => {
         Response.json({ error: "Please retry" }, { status: 503 }),
       )
       .mockResolvedValueOnce(
-        Response.json({ subtotalCents: 1299, totalCents: 1299, itemCount: 1 }),
+        Response.json({
+          subtotalCents: 1299,
+          total: 12.99,
+          discountPercent: 0,
+          itemCount: 1,
+        }),
       );
     await act(async () =>
       root.render(
@@ -236,5 +245,119 @@ describe("HTTP client", () => {
   it("rejects invalid JSON responses", async () => {
     fetchMock.mockResolvedValue(new Response("invalid"));
     await expect(api("/api/nope")).rejects.toThrow();
+  });
+});
+
+describe("flagship interactions", () => {
+  it("submits bulk text and publishes newly created invoices", async () => {
+    const onCreated = vi.fn();
+    fetchMock.mockResolvedValue(
+      Response.json([
+        {
+          id: "bulk-1",
+          tenantId: "atlas",
+          productName: "Notebook",
+          itemCount: 10,
+          totalCents: 12990,
+          note: "Team",
+          createdAt: "2026-09-11",
+        },
+      ]),
+    );
+    await act(async () => root.render(<BulkCheckout onCreated={onCreated} />));
+    const form = container.querySelector("form");
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+    await flush();
+    expect(onCreated).toHaveBeenCalledOnce();
+    expect(container.textContent).toContain("1 invoices created");
+    expect(
+      parseBatchText("notebook, 10, note, with comma\n\ndesk-kit, 2, other"),
+    ).toEqual([
+      { productId: "notebook", itemCount: 10, note: "note, with comma" },
+      { productId: "desk-kit", itemCount: 2, note: "other" },
+    ]);
+  });
+  it("reports bulk failure and aborts pending requests", async () => {
+    fetchMock.mockRejectedValueOnce(new Error("Batch rejected"));
+    await act(async () => root.render(<BulkCheckout onCreated={() => {}} />));
+    const form = container.querySelector("form");
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+    await flush();
+    expect(container.textContent).toContain("Batch rejected");
+    let signal: AbortSignal | null | undefined;
+    fetchMock.mockImplementation((_input, init) => {
+      signal = init?.signal;
+      return new Promise(() => {});
+    });
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+    await act(async () => root.unmount());
+    expect(signal?.aborted).toBe(true);
+    root = createRoot(container);
+  });
+  it("renders search results, empty results, and errors", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        Response.json([
+          {
+            id: "inv-atlas",
+            tenantId: "atlas",
+            productName: "Notebook",
+            itemCount: 1,
+            totalCents: 1299,
+            note: "Team",
+            createdAt: "2026-09-11",
+          },
+        ]),
+      )
+      .mockResolvedValueOnce(Response.json([]))
+      .mockRejectedValueOnce(new Error("Search offline"));
+    await act(async () => root.render(<InvoiceSearch />));
+    const form = container.querySelector("form");
+    async function search(): Promise<void> {
+      await act(async () => {
+        form?.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true }),
+        );
+      });
+      await flush();
+    }
+    await search();
+    expect(container.querySelector("a")?.textContent).toContain("Notebook");
+    await search();
+    expect(container.textContent).toContain("No invoices match");
+    await search();
+    expect(container.textContent).toContain("Search offline");
+  });
+  it("aborts pending searches on unmount", async () => {
+    let signal: AbortSignal | null | undefined;
+    fetchMock.mockImplementation((_input, init) => {
+      signal = init?.signal;
+      return new Promise(() => {});
+    });
+    await act(async () => root.render(<InvoiceSearch />));
+    const form = container.querySelector("form");
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+    await act(async () => root.unmount());
+    expect(signal?.aborted).toBe(true);
+    root = createRoot(container);
+  });
+  it("validates promotional responses", () => {
+    expect(() => promotionSummary({})).toThrow("Invalid promotional quote");
   });
 });
